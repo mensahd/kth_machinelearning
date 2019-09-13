@@ -3,7 +3,7 @@ class Sample:
 
     def __init__(self, positive, values, identity):
         self.positive = positive
-        self.attribute = dict(zip(attributes, values))#
+        self.attribute = dict(zip(attributes, values))
         self.identity = identity
 
 

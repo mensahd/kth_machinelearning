@@ -4,7 +4,7 @@ import math
 def entropy(dataset):
     "Calculate the entropy of a dataset"
     n = len(dataset)
-    nPos = len([x for x in dataset if x.positive])
+    nPos = len([x for x in dataset if x.positive])#number of positive samples in dataset
     nNeg = n - nPos
     if nPos == 0 or nNeg == 0:
         return 0.0
