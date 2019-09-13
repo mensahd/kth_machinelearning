@@ -15,7 +15,7 @@ class Attribute:
         self.values = values
 
     def __repr__(self):
-        return self.name
+        return self.name  #wenn attribut aufgerufen wird, wird nur der Name angezeigt. Die reichweite erreicht man nicht Attribute.values
 
 
 attributes = (Attribute('A1', (1, 2, 3)),
