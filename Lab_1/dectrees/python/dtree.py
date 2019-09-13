@@ -9,7 +9,7 @@ def entropy(dataset):
     if nPos == 0 or nNeg == 0:
         return 0.0
     return -float(nPos)/n * log2(float(nPos)/n) + \
-        -float(nNeg)/n * log2(float(nNeg)/n)
+        -float(nNeg)/n * log2(float(nNeg)/n)#Entropy-calculation for binary problem
 
 
 def averageGain(dataset, attribute):
