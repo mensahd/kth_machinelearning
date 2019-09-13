@@ -8,12 +8,10 @@ def getMonkset(number):
     monknumber = 'monk' + str(number)
     return getattr(m, monknumber, lambda: "Invalid MONK dataset")
 
-
 def tabHelper(text, min_field=25):
     tabs_to_append = min_field - len(text)
     return_string = (text if (tabs_to_append <= 0) else text + " " * tabs_to_append)
     return return_string
-
 
 # Code Daniel
 def assignment1_daniel():
@@ -66,6 +64,7 @@ def assignment5_daniel():
     qt5.drawtree(tree)
 
 
+
 def run_daniel():
     assignment1_daniel()
     assignment3_daniel()
@@ -82,9 +81,31 @@ def assignment1_linus():
     print("Entropy of Monk2: " + str(entropy3))
 
 
+def assignment3_linus():
+    for index in range(1, 4):  # for-loop for the monk-datasets
+        print("MONK-" + str(index))
+        for attribute in m.attributes:
+            gain = dtree.averageGain(getMonkset(index), attribute)
+            print(str(attribute) + ": " + str(gain))
+
+def assignment5_linus():
+    dataset = m.monk1
+    print(find_best_attribute(dataset, m.attributes))
+
+def find_best_attribute(dataset, attributes):
+    "Find attribute with the highest information gain"
+    gains = []
+    for attribute in attributes:
+        gains.append((dtree.averageGain(dataset, attribute), attribute))#creates a list of tupples with information gain + attribute
+    return max(gains)[1]#Glüch gehabt dass er das 1. Element im Tupel (Average Gain) miteinander vergleicht
+
+
 def run_linus():
-    assignment1_linus()
+    # assignment1_linus()
+    #assignment3_linus()
+    assignment5_linus()
 
 
 run_linus()
 run_daniel()
+
