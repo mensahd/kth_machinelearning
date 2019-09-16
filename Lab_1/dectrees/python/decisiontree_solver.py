@@ -47,30 +47,43 @@ def buildtree(currentSet, level=5, subtree="X"):
             if gain > max_gain:
                 max_att, max_gain = att, gain
         '''
-        max_att = dtree.bestAttribute(currentSet, m.attributes)
-        nextSets = [dtree.select(currentSet, max_att, x) for x in max_att.values]
-        print("Split by " + str(max_att) + " in subtree " + subtree)
-        for i, set in enumerate(nextSets):
-            if len(set) > 0:
-                buildtree(set, level - 1, subtree + "-" + str(i+1))
+        if(dtree.allPositive(currentSet) == True or dtree.allNegative(currentSet) == True):
+            print("Subtree " + subtree + ": " + str(dtree.mostCommon(currentSet)))
+        else:
+            max_att = dtree.bestAttribute(currentSet, m.attributes)
+            nextSets = [dtree.select(currentSet, max_att, x) for x in max_att.values]
+            print("Split by " + str(max_att) + " in subtree " + subtree)
+            for i, set in enumerate(nextSets):
+                if len(set) > 0:
+                    buildtree(set, level - 1, subtree + "-" + str(i+1))
+                else:
+                    print("Subtree " + subtree + "-"+str(i+1)+": " + str(dtree.mostCommon(set)))
     else:
         print("Subtree " + subtree + ": " + str(dtree.mostCommon(currentSet)))
 
 
 def assignment5_daniel():
     print("Assignment 5:")
-    mset = getMonkset(1)
-    buildtree(mset, 2)
 
-    print("Comparison")
-    #tree = id3.buildtree(mset,m.attributes)
-    #qt5.drawtree(tree)
+    depth = 9
+    for index in range(1, 2):
+        mset = getMonkset(index)
+        #buildtree(mset, depth)
+        print("Comparison")
+        tree = dtree.buildTree(mset, m.attributes)
+        print("MONK-" + str(index) + ":")
+        #print(tree)
+        qt5.drawTree(tree)
+        print("Correctness_Train: " + str(dtree.check(tree, mset)))
+        print("Correctness_Test: " + str(dtree.check(tree, getMonkset(index, "test"))))
+        #tree = id3.buildtree(mset,m.attributes)
+
 
 
 
 def run_daniel():
-    assignment1_daniel()
-    assignment3_daniel()
+    #assignment1_daniel()
+    #assignment3_daniel()
     assignment5_daniel()
 
 
@@ -142,6 +155,6 @@ def run_linus():
     assignment5_linus()
 
 
-run_linus()
-#run_daniel()
+#run_linus()
+run_daniel()
 
