@@ -1,11 +1,14 @@
 import drawtree_qt5 as qt5
 import dtree
 import monkdata as m
-import id3
+#import id3
 
 
-def getMonkset(number):
-    monknumber = 'monk' + str(number)
+def getMonkset(number, test=""):
+    if test == "":
+        monknumber = 'monk' + str(number)
+    else:
+        monknumber = 'monk' + str(number) + 'test'
     return getattr(m, monknumber, lambda: "Invalid MONK dataset")
 
 def tabHelper(text, min_field=25):
@@ -60,8 +63,8 @@ def assignment5_daniel():
     buildtree(mset, 2)
 
     print("Comparison")
-    tree = id3.buildtree(mset, m.attributes)
-    qt5.drawtree(tree)
+    #tree = id3.buildtree(mset,m.attributes)
+    #qt5.drawtree(tree)
 
 
 
@@ -89,8 +92,40 @@ def assignment3_linus():
             print(str(attribute) + ": " + str(gain))
 
 def assignment5_linus():
-    dataset = m.monk1
-    print(find_best_attribute(dataset, m.attributes))
+    depth = 3
+    print("Tiefe: " + str(depth))
+    for index in range(1, 4):
+        tree = dtree.buildTree(getMonkset(index), m.attributes, depth)
+        print("MONK-"+str(index)+":")
+        print(tree)
+        print("Error_Train: "+ str(check(tree, getMonkset(index))))
+       # qt5.drawTree(tree)
+
+
+    #ich gebs auf den Tree zu builden
+
+#   dataset = []
+#   dataset.append([m.monk1])
+#   best_attributes = []
+#
+#   for level in range(1, 3):
+#        dataset_subtree=[]
+#        best_attributes_subtree=[]
+#        for branch in dataset[level-1]:
+#            dataset_subtree.append(subtree(branch))
+#            best_attributes_subtree.append(dtree.bestAttribute(branch, m.attributes))
+#        dataset.append(dataset_subtree)
+#        best_attributes.append(best_attributes_subtree)#
+#
+#    print(best_attributes)
+
+
+
+def subtree(dataset):
+    best_attribute = dtree.bestAttribute(dataset, m.attributes)
+    subtree_dataset = [dtree.select(dataset, best_attribute, x) for x in best_attribute.values]
+    return subtree_dataset
+
 
 def find_best_attribute(dataset, attributes):
     "Find attribute with the highest information gain"
@@ -102,10 +137,10 @@ def find_best_attribute(dataset, attributes):
 
 def run_linus():
     # assignment1_linus()
-    #assignment3_linus()
+    # assignment3_linus()
     assignment5_linus()
 
 
 run_linus()
-run_daniel()
+#run_daniel()
 
