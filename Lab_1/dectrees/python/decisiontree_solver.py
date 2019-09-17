@@ -90,7 +90,7 @@ def run_daniel():
     assignment5_daniel()
 
 
-# Code Linus
+# Code BigLinguist
 def assignment1_linus():
     entropy1 = dtree.entropy(m.monk1)
     entropy2 = dtree.entropy(m.monk2)
@@ -111,7 +111,7 @@ def assignment3_linus():
 def assignment5_linus():
     depth = 9
     print("Tiefe: " + str(depth))
-    for index in range(3, 4):
+    for index in range(3, 4):#loop through all monk sets
         tree = dtree.buildTree(getMonkset(index), m.attributes, depth)
         print("MONK-" + str(index) + ":")
         print(tree)
@@ -119,25 +119,10 @@ def assignment5_linus():
         print("Error_Test: " + str(dtree.check(tree, getMonkset(index, "test"))))
         qt5.drawTree(tree)
 
-    # ich gebs auf den Tree zu builden
 
-
-#   dataset = []
-#   dataset.append([m.monk1])
-#   best_attributes = []
-#
-#   for level in range(1, 3):
-#        dataset_subtree=[]
-#        best_attributes_subtree=[]
-#        for branch in dataset[level-1]:
-#            dataset_subtree.append(subtree(branch))
-#            best_attributes_subtree.append(dtree.bestAttribute(branch, m.attributes))
-#        dataset.append(dataset_subtree)
-#        best_attributes.append(best_attributes_subtree)#
-#
-#    print(best_attributes)
 
 def subtree(dataset):
+    "Return the subtrees of a datatree for the best attribute"
     best_attribute = dtree.bestAttribute(dataset, m.attributes)
     subtree_dataset = [dtree.select(dataset, best_attribute, x) for x in best_attribute.values]
     return subtree_dataset
@@ -154,35 +139,35 @@ def find_best_attribute(dataset, attributes):
 
 def assignment6_linus():
     runs = 1000  # amount of runs
-    monk = 3
+    monk = 3    #monkset
     monk_training = getMonkset(monk)
     monk_test = getMonkset(monk, "Test")
-    fractions_all = [0.3, 0.4, 0.5, 0.6, 0.7, 0.8]
+    fractions_all = [0.3, 0.4, 0.5, 0.6, 0.7, 0.8]#fractions for splitting training data
 
-    for fraction in fractions_all:
+    for fraction in fractions_all:#loop through the different fraction
         scores_fraction = []
-        for index in range(runs):
+        for index in range(runs):#loop through several runs to take the average in the end
             monk_train, monk_val = partition(monk_training, fraction)
             tree = dtree.buildTree(monk_train, m.attributes)
-            best_tree = pruning(tree, monk_val)
+            best_tree = pruning(tree, monk_val)#find the best tree by pruning
             scores_fraction.append(dtree.check(best_tree, monk_test))
         print("Fraction: " + str(fraction))
-        for x in scores_fraction:
+        for x in scores_fraction:#Ausgabe der scores für eine bestimmte Fraction als Liste -> Auswertung in Excel datei, Werte aus Console kopieren in .txt datei und in Excel einlesen
             print(x)
 
 
 def pruning(tree, validation_data):
-    # delivers the best tree after pruning
+    "Find the best tree by pruning"
     best_tree = tree
     best_score = dtree.check(best_tree, validation_data)
     finished = False
     while not finished:
-        # prune as long pruning doesn't make the score on the validation data better
+        "Loop as long pruning again shortens the tree and delivers a better result"
         pruned_list = dtree.allPruned(best_tree)
         found_next_best = False
-        for pruned in pruned_list:
+        for pruned in pruned_list:#loop all prune possibilites
             current_score = dtree.check(pruned, validation_data)
-            if current_score > best_score:
+            if current_score > best_score:#check if a pruned tree is better than the old one
                 best_score = current_score
                 best_tree = pruned
                 found_next_best = True
