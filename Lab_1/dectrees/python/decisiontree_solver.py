@@ -1,6 +1,7 @@
 import drawtree_qt5 as qt5
 import dtree
 import monkdata as m
+import random
 #import id3
 
 
@@ -133,13 +134,10 @@ def assignment5_linus():
 #
 #    print(best_attributes)
 
-
-
 def subtree(dataset):
     best_attribute = dtree.bestAttribute(dataset, m.attributes)
     subtree_dataset = [dtree.select(dataset, best_attribute, x) for x in best_attribute.values]
     return subtree_dataset
-
 
 def find_best_attribute(dataset, attributes):
     "Find attribute with the highest information gain"
@@ -148,12 +146,54 @@ def find_best_attribute(dataset, attributes):
         gains.append((dtree.averageGain(dataset, attribute), attribute))#creates a list of tupples with information gain + attribute
     return max(gains)[1]#Glüch gehabt dass er das 1. Element im Tupel (Average Gain) miteinander vergleicht
 
+def assignment6_linus():
+    runs = 50 #amount of runs
+    #make runs for all different fractions in which the training data is split into training + validation data
+    for fraction in frange(0.3, 0.8, 0.1):
+        error = []
+        for index in range(runs):
+            monk1train, monk1val = partition(m.monk1, fraction) #split into validation and training data for the give fraction
+            tree = dtree.buildTree(monk1train, m.attributes)
+            best_tree = tree
+            finished = False
+            while not finished:
+                #looping through the pruned trees.
+                #if we find a better tree, remove the old tree and loop it again
+                #terminate when we dont find a better performing tree
+                pruned_list = list(dtree.allPruned(best_tree))
+                new_tree_found = False
+                for pruned in pruned_list:
+                    error_old = dtree.check(best_tree, monk1val)
+                    error_new = dtree.check(pruned, monk1val)
+                    if error_new > error_old:
+                        best_tree = pruned
+                        new_tree_found = True
+                if not new_tree_found:
+                    error.append(error_new)
+                    finished = True
+        print("Errors for fraction" + str(fraction))
+        print(error)
+
+def frange(start, stop, step):
+    #range for float-operations
+    i = start
+    while i < stop:
+        yield i
+        i+= step
+
+def partition(data, fraction):
+    ldata = list(data)
+    random.shuffle(ldata)
+    breakPoint = int(len(ldata) * fraction)
+    return ldata[:breakPoint], ldata[breakPoint:]
+
+
 
 def run_linus():
-    # assignment1_linus()
-     #assignment3_linus()
-     assignment5_linus()
-
+    #assignment1_linus()
+    #assignment3_linus()
+    #assignment5_linus()
+    assignment6_linus()
 
 run_linus()
 #run_daniel()
