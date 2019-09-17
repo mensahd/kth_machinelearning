@@ -107,13 +107,13 @@ def assignment3_linus():
 def assignment5_linus():
     depth = 9
     print("Tiefe: " + str(depth))
-    for index in range(1, 4):
+    for index in range(3,4):
         tree = dtree.buildTree(getMonkset(index), m.attributes, depth)
         print("MONK-"+str(index)+":")
         print(tree)
         print("Error_Train: "+ str(dtree.check(tree, getMonkset(index))))
         print("Error_Test: "+ str(dtree.check(tree, getMonkset(index,"test"))))
-       # qt5.drawTree(tree)
+        qt5.drawTree(tree)
 
 
     #ich gebs auf den Tree zu builden
@@ -151,10 +151,10 @@ def find_best_attribute(dataset, attributes):
 
 def run_linus():
     # assignment1_linus()
-    # assignment3_linus()
-    assignment5_linus()
+     #assignment3_linus()
+     assignment5_linus()
 
 
-#run_linus()
-run_daniel()
+run_linus()
+#run_daniel()
 
