@@ -147,12 +147,12 @@ def find_best_attribute(dataset, attributes):
     return max(gains)[1]#Glüch gehabt dass er das 1. Element im Tupel (Average Gain) miteinander vergleicht
 
 def assignment6_linus():
-    runs = 50 #amount of runs
+    runs = 500 #amount of runs
     #make runs for all different fractions in which the training data is split into training + validation data
     for fraction in frange(0.3, 0.8, 0.1):
         error = []
         for index in range(runs):
-            monk1train, monk1val = partition(m.monk1, fraction) #split into validation and training data for the give fraction
+            monk1train, monk1val = partition(m.monk3, fraction) #split into validation and training data for the give fraction
             tree = dtree.buildTree(monk1train, m.attributes)
             best_tree = tree
             finished = False
@@ -169,10 +169,12 @@ def assignment6_linus():
                         best_tree = pruned
                         new_tree_found = True
                 if not new_tree_found:
-                    error.append(error_new)
+                    error_test = dtree.check(best_tree, m.monk1test)
+                    error.append(error_test)
                     finished = True
         print("Errors for fraction" + str(fraction))
-        print(error)
+        for x in error:
+            print(x)
 
 def frange(start, stop, step):
     #range for float-operations
