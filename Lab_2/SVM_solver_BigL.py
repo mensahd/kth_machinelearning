@@ -2,36 +2,36 @@ import numpy, random, math
 from scipy.optimize import minimize
 import matplotlib.pyplot as plt
 
-# numpy.zeros(N)
-
-# ret = minimize(objective, start, bounds= B, constraints=XC)
-# alpha = ret[’x’]
-
-
-# stuff linus
-
+"parameters for dataclasses A and B"
 c_A_1 = [1.5, 0.5]
 c_A_2 = [-1.5, 0.5]
+c_A_3 = [0, -2]
 c_B_1 = [0.0, -0.5]
 c_B_2 = [-3.0, -0.5]
-points_A = 10
+c_B_3 = [0, 4]
+points_A = 20
 points_B = 20
 variance_A = 0.35
 variance_B = 0.35
-kernel = 0  # 0: linear, 1: polynomial, 2: RBF
+kernel = 2  # 0: linear, 1: polynomial, 2: RBF
 
+#generate the classes
 classA = numpy.concatenate(
     (numpy.random.randn(points_A, 2) * variance_A + c_A_1,  # 10x2 vector of normal distribution around 1.5, 0.5,
-     numpy.random.randn(points_A, 2) * variance_A + c_A_2))  # standard deviation of 0.2
-classB = numpy.random.randn(points_B, 2) * variance_B + c_B_1
+     numpy.random.randn(points_A, 2) * variance_A + c_A_2,
+     numpy.random.randn(points_A, 2) * variance_A + c_A_3))  # standard deviation of 0.2
+classB = numpy.concatenate(
+    (numpy.random.randn(points_B, 2) * variance_B + c_B_1,  # 10x2 vector of normal distribution around 1.5, 0.5,
+     numpy.random.randn(points_B, 2) * variance_B + c_B_2,
+     numpy.random.randn(points_B, 2) * variance_B + c_B_3))
 
 
 def generating_test_data():
     inputs = numpy.concatenate((classA, classB))
-    targets = numpy.concatenate(  # targets, either +1 or -1
+    targets = numpy.concatenate(                # targets, either +1 or -1 corresponding to class
         (numpy.ones(classA.shape[0]),
          -numpy.ones(classB.shape[0])))
-    N = inputs.shape[0]  # number of samples
+    N = inputs.shape[0]                         # number of samples
     permute = (list(range(N)))
     random.shuffle(permute)
     return inputs[permute, :], targets[permute]
@@ -42,14 +42,15 @@ N = inputs.shape[0]
 
 
 def kernel_function(x, y):
-    p = 10
-    sigma = 2
+    "Different kernel funcitons"
+    p = 10      # parameter polynomial kernel
+    sigma = 2   # parameter RBF kernel
     if kernel == 1:
-        return (numpy.dot(x, y) + 1) ** p
+        return (numpy.dot(x, y) + 1) ** p   #polynomial
     elif kernel == 2:
-        return numpy.exp(-(numpy.linalg.norm(x - y) ** 2) / (2 * (sigma ** 2)))
+        return numpy.exp(-(numpy.linalg.norm(x - y) ** 2) / (2 * (sigma ** 2))) # RBF
     else:
-        return numpy.dot(x, y)
+        return numpy.dot(x, y)              # linear
 
 
 P = numpy.zeros((N, N))  # zero matrix P
@@ -70,7 +71,7 @@ def zerofun(a):
 
 def minimalize_alpha():
 
-    bound_B = [(0, 100) for b in range(N)]
+    bound_B = [(0, 10) for b in range(N)]
     # objective: function with a as argument
     # start: initial guess of a -> Zero vector
     # bounds: list of pairs with the lower and upper bounds
@@ -102,6 +103,7 @@ b = calculate_bias()
 
 
 def indicator_fct(x, y):
+    "Indicator function which determines class"
     s = [x, y]
     array = [[numpy.dot(numpy.dot(sv[0], sv[1]), kernel_function(sv[2], s))] for sv in support_vectors]
     return numpy.sum(array) - b
