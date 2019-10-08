@@ -4,9 +4,9 @@ import matplotlib.pyplot as plt
 from scipy.optimize import minimize
 
 classA = numpy.concatenate(
-    (numpy.random.randn(10, 2) * 0.2 + [1.5, 0.5],  # 10x2 vector of normal distribution around 1.5, 0.5,
-     numpy.random.randn(10, 2) * 0.2 + [-1.5, 0.5]))  # standard deviation of 0.2
-classB = numpy.random.randn(20, 2) * 0.2 + [0.0, -0.5]
+    (numpy.random.randn(20, 2) * 0.2 + [1.5, 0.5],  # 10x2 vector of normal distribution around 1.5, 0.5,
+     numpy.random.randn(20, 2) * 0.2 + [-1.5, 0.5]))  # standard deviation of 0.2
+classB = numpy.random.randn(40, 2) * 0.2 + [0.0, -0.5]
 
 
 def generating_test_data():
@@ -22,8 +22,8 @@ def generating_test_data():
 
 datapoints, targets = generating_test_data()
 
-N = len(datapoints)
-C = None  # margin factor
+N = datapoints.shape[0]
+C = 0.5  # margin factor
 
 
 def linear_kernel_function(x, y):
@@ -35,10 +35,10 @@ def kernel_function(datapoint_1, datapoint_2):  # defined new in every case
 
 
 def init_matrix():
-    matrix = numpy.empty((N, N))
+    matrix = numpy.zeros((N, N))
     for i in range(N):
         for j in range(N):
-            matrix[i:j] = (targets[i] * targets[j] * kernel_function(datapoints[i], datapoints[j]))
+            matrix[i][j] = (targets[i] * targets[j] * kernel_function(datapoints[i], datapoints[j]))
     return matrix
 
 
@@ -95,7 +95,7 @@ def plot_data():
 
     plt.axis('equal')  # Force the same scale on both axes
     plt.savefig('svmplot.pdf')  # Save a copy in a file
-    plt.show()  # Show the plot on the screen
+    #plt.show()  # Show the plot on the screen
 
     xgrid = numpy.linspace(-5, 5)
     ygrid = numpy.linspace(-4, 4)
@@ -104,6 +104,8 @@ def plot_data():
     plt.contour(xgrid, ygrid, grid, (-1.0, 0.0, 1.0), \
                 colors=('red', 'black', 'blue'),
                 linewidths=(1, 3, 1))
+
+    plt.show()  # Show the plot on the screen
 
 
 plot_data()
