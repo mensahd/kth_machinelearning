@@ -10,11 +10,20 @@ import matplotlib.pyplot as plt
 
 # stuff linus
 
+c_A_1 = [1.5, 0.5]
+c_A_2 = [-1.5, 0.5]
+c_B_1 = [0.0, -0.5]
+c_B_2 = [-3.0, -0.5]
+points_A = 10
+points_B = 20
+variance_A = 0.35
+variance_B = 0.35
+kernel = 0  # 0: linear, 1: polynomial, 2: RBF
 
 classA = numpy.concatenate(
-    (numpy.random.randn(20, 2) * 0.2 + [1.5, 0.5],  # 10x2 vector of normal distribution around 1.5, 0.5,
-     numpy.random.randn(20, 2) * 0.2 + [-1.5, 0.5]))  # standard deviation of 0.2
-classB = numpy.random.randn(40, 2) * 0.2 + [0.0, -0.5]
+    (numpy.random.randn(points_A, 2) * variance_A + c_A_1,  # 10x2 vector of normal distribution around 1.5, 0.5,
+     numpy.random.randn(points_A, 2) * variance_A + c_A_2))  # standard deviation of 0.2
+classB = numpy.random.randn(points_B, 2) * variance_B + c_B_1
 
 
 def generating_test_data():
@@ -31,14 +40,22 @@ def generating_test_data():
 inputs, targets = generating_test_data()
 N = inputs.shape[0]
 
-def kernel_linear(x, y):
-    return numpy.dot(x, y)
+
+def kernel_function(x, y):
+    p = 10
+    sigma = 2
+    if kernel == 1:
+        return (numpy.dot(x, y) + 1) ** p
+    elif kernel == 2:
+        return numpy.exp(-(numpy.linalg.norm(x - y) ** 2) / (2 * (sigma ** 2)))
+    else:
+        return numpy.dot(x, y)
 
 
 P = numpy.zeros((N, N))  # zero matrix P
 for i in range(N):  # implement matrix P
     for j in range(N):
-        P[i][j] = targets[i] * targets[j] * kernel_linear(inputs[i], inputs[j])
+        P[i][j] = targets[i] * targets[j] * kernel_function(inputs[i], inputs[j])
 
 
 def objective(a):
@@ -52,26 +69,32 @@ def zerofun(a):
 
 
 def minimalize_alpha():
-    C = None
-    bound_B = [(0, C) for b in range(N)]
+
+    bound_B = [(0, 100) for b in range(N)]
     # objective: function with a as argument
     # start: initial guess of a -> Zero vector
     # bounds: list of pairs with the lower and upper bounds
     # constraint: constraining alpha, constraint={'type':'eq', 'fun':zerofun}
     ret = minimize(objective, numpy.zeros(N), bounds=bound_B, constraints={'type': 'eq', 'fun': zerofun})
+    if ret['success']:
+        solution_found = True
+        print("solution found")
+    else:
+        solution_found = False
+        print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\nNO SOLUTION FOUND\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
     alpha = ret['x']
     indices = numpy.where(alpha >= 10 ** (-5))
-    indices = indices[0][:]                                             #da sonst indices als Matrix gesehen wird
+    indices = indices[0][:]  # da sonst indices als Matrix gesehen wird
     support_vector = [[alpha[i], targets[i], inputs[i]] for i in indices]
-    return support_vector
+    return support_vector, solution_found
 
 
-support_vectors = minimalize_alpha()
+support_vectors, solution_found = minimalize_alpha()
 
 
 def calculate_bias():
     any_sv = support_vectors[0][:]  # random support vector
-    array = [[numpy.dot(numpy.dot(sv[0], sv[1]), kernel_linear(sv[2], any_sv[2]))] for sv in support_vectors]
+    array = [[numpy.dot(numpy.dot(sv[0], sv[1]), kernel_function(sv[2], any_sv[2]))] for sv in support_vectors]
     return numpy.sum(array) - any_sv[1]
 
 
@@ -80,7 +103,7 @@ b = calculate_bias()
 
 def indicator_fct(x, y):
     s = [x, y]
-    array = [[numpy.dot(numpy.dot(sv[0], sv[1]), kernel_linear(sv[2], s))] for sv in support_vectors]
+    array = [[numpy.dot(numpy.dot(sv[0], sv[1]), kernel_function(sv[2], s))] for sv in support_vectors]
     return numpy.sum(array) - b
 
 
@@ -91,9 +114,11 @@ def plot_data():
     plt.plot([p[0] for p in classB],
              [p[1] for p in classB],
              'r.')
-#    plt.plot([sv[2][0] for sv in support_vectors)],
- #            [sv[2][1] for sv in support_vectors)],
-  #          'g+')
+    if solution_found:
+        plt.plot([sv[2][0] for sv in support_vectors],
+             [sv[2][1] for sv in support_vectors],
+             'yo')
+
     plt.axis('equal')
     plt.savefig('svmplot.pdf')
     plt.show()
