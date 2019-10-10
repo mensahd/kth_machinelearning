@@ -3,11 +3,19 @@ import random
 import matplotlib.pyplot as plt
 from scipy.optimize import minimize
 
+std_dev = 0.2
 classA = numpy.concatenate(
-    (numpy.random.randn(20, 2) * 0.2 + [1.5, 0.5],  # 10x2 vector of normal distribution around 1.5, 0.5,
-     numpy.random.randn(20, 2) * 0.2 + [-1.5, 0.5]))  # standard deviation of 0.2
-classB = numpy.random.randn(40, 2) * 0.2 + [0.0, -0.5]
+    (numpy.random.randn(20, 2) * std_dev + [1.5, 0.5],  # 10x2 vector of normal distribution around 1.5, 0.5,
+     numpy.random.randn(20, 2) * std_dev + [-1.5, 0.5],
+     numpy.random.randn(20, 2) * std_dev + [2.5, 1.5],
+     numpy.random.randn(20, 2) * std_dev + [-1.5, -1.5],
+     numpy.random.randn(20, 2) * std_dev + [4.0, -1.5],))  # standard deviation of 0.2
+classB = numpy.concatenate(
+    (numpy.random.randn(40, 2) * std_dev + [0.0, -0.5],
+     numpy.random.randn(25, 2) * std_dev + [0.0, 2.5],
+     numpy.random.randn(25, 2) * std_dev + [3.0, 0.5]))
 
+kernel = 1
 
 def generating_test_data():
     inputs = numpy.concatenate((classA, classB))
@@ -23,15 +31,18 @@ def generating_test_data():
 datapoints, targets = generating_test_data()
 
 N = datapoints.shape[0]
-C = 0.5  # margin factor
+C = 1  # margin factor  
 
 
-def linear_kernel_function(x, y):
-    return numpy.dot(x, y)
-
-
-def kernel_function(datapoint_1, datapoint_2):  # defined new in every case
-    return linear_kernel_function(datapoint_1, datapoint_2)
+def kernel_function(x, y):
+    p = 10
+    sigma = 2
+    if kernel == 1:
+        return (numpy.dot(x, y) + 1) ** p
+    elif kernel == 2:
+        return numpy.exp(-(numpy.linalg.norm(x - y) ** 2) / (2 * (sigma ** 2)))
+    else:
+        return numpy.dot(x, y)
 
 
 def init_matrix():
@@ -89,6 +100,12 @@ def plot_data():
     plt.plot([p[0] for p in classA],
              [p[1] for p in classA],
              'b.')
+
+    for sv in svm_alphas:
+        if sv[2] == 1:
+            plt.plot(sv[0][0], sv[0][1], 'bo')
+        else:
+            plt.plot(sv[0][0], sv[0][1], 'ro')
     plt.plot([p[0] for p in classB],
              [p[1] for p in classB],
              'r.')
