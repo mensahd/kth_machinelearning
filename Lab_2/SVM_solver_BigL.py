@@ -2,21 +2,28 @@ import numpy, random, math
 from scipy.optimize import minimize
 import matplotlib.pyplot as plt
 
-"parameters for dataclasses A and B"
+#parameters for dataclasses A and B
 c_A_1 = [1.5, 0.5]
 c_A_2 = [-1.5, 0.5]
+
+c_B_1 = [0,-0.5]
+
 c_A_3 = [0, -2]
-c_B_1 = [0.0, -0.5]
 c_B_2 = [-3.0, -0.5]
 c_B_3 = [0, 4]
-points_A = 20
+points_A = 10
 points_B = 20
-variance_A = 0.35
-variance_B = 0.35
-kernel = 2  # 0: linear, 1: polynomial, 2: RBF
+variance_A = 0.3
+variance_B = 0.3
+kernel = 2 # 0: linear, 1: polynomial, 2: RBF
 
 #generate the classes
 classA = numpy.concatenate(
+    (numpy.random.randn(points_A, 2) * variance_A + c_A_1,  # 10x2 vector of normal distribution around 1.5, 0.5,
+     numpy.random.randn(points_A, 2) * variance_A + c_A_2))  # standard deviation of 0.2
+classB = numpy.random.randn(points_B, 2) * variance_B + c_B_1
+
+"""classA = numpy.concatenate(
     (numpy.random.randn(points_A, 2) * variance_A + c_A_1,  # 10x2 vector of normal distribution around 1.5, 0.5,
      numpy.random.randn(points_A, 2) * variance_A + c_A_2,
      numpy.random.randn(points_A, 2) * variance_A + c_A_3))  # standard deviation of 0.2
@@ -24,7 +31,7 @@ classB = numpy.concatenate(
     (numpy.random.randn(points_B, 2) * variance_B + c_B_1,  # 10x2 vector of normal distribution around 1.5, 0.5,
      numpy.random.randn(points_B, 2) * variance_B + c_B_2,
      numpy.random.randn(points_B, 2) * variance_B + c_B_3))
-
+"""
 
 def generating_test_data():
     inputs = numpy.concatenate((classA, classB))
@@ -44,7 +51,7 @@ N = inputs.shape[0]
 def kernel_function(x, y):
     "Different kernel funcitons"
     p = 10      # parameter polynomial kernel
-    sigma = 2   # parameter RBF kernel
+    sigma = 10   # parameter RBF kernel
     if kernel == 1:
         return (numpy.dot(x, y) + 1) ** p   #polynomial
     elif kernel == 2:
@@ -71,7 +78,7 @@ def zerofun(a):
 
 def minimalize_alpha():
 
-    bound_B = [(0, 10) for b in range(N)]
+    bound_B = [(0, None) for b in range(N)]
     # objective: function with a as argument
     # start: initial guess of a -> Zero vector
     # bounds: list of pairs with the lower and upper bounds
@@ -116,22 +123,24 @@ def plot_data():
     plt.plot([p[0] for p in classB],
              [p[1] for p in classB],
              'r.')
-    if solution_found:
+    xgrid = numpy.linspace(-5, 5)
+    ygrid = numpy.linspace(-4, 4)
+    grid = numpy.array([[indicator_fct(x, y) for x in xgrid] for y in ygrid])
+
+    if solution_found:#if solution is found, plot decision boundary and support vectors
         plt.plot([sv[2][0] for sv in support_vectors],
              [sv[2][1] for sv in support_vectors],
              'yo')
+
+        plt.contour(xgrid, ygrid, grid,
+                    (-1.0, 0.0, 1.0),
+                    colors=('red', 'black', 'blue'),
+                    linewidths=(1, 3, 1))
 
     plt.axis('equal')
     plt.savefig('svmplot.pdf')
     plt.show()
 
-    xgrid = numpy.linspace(-5, 5)
-    ygrid = numpy.linspace(-4, 4)
-    grid = numpy.array([[indicator_fct(x, y) for x in xgrid] for y in ygrid])
-    plt.contour(xgrid, ygrid, grid,
-                (-1.0, 0.0, 1.0),
-                colors=('red', 'black', 'blue'),
-                linewidths=(1, 3, 1))
 
 
 plot_data()
