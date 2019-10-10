@@ -15,15 +15,15 @@ points_A = 10
 points_B = 20
 variance_A = 0.3
 variance_B = 0.3
-kernel = 2 # 0: linear, 1: polynomial, 2: RBF
+kernel = 1 # 0: linear, 1: polynomial, 2: RBF
 
 #generate the classes
-classA = numpy.concatenate(
+"""classA = numpy.concatenate(
     (numpy.random.randn(points_A, 2) * variance_A + c_A_1,  # 10x2 vector of normal distribution around 1.5, 0.5,
      numpy.random.randn(points_A, 2) * variance_A + c_A_2))  # standard deviation of 0.2
-classB = numpy.random.randn(points_B, 2) * variance_B + c_B_1
+classB = numpy.random.randn(points_B, 2) * variance_B + c_B_1"""
 
-"""classA = numpy.concatenate(
+classA = numpy.concatenate(
     (numpy.random.randn(points_A, 2) * variance_A + c_A_1,  # 10x2 vector of normal distribution around 1.5, 0.5,
      numpy.random.randn(points_A, 2) * variance_A + c_A_2,
      numpy.random.randn(points_A, 2) * variance_A + c_A_3))  # standard deviation of 0.2
@@ -31,7 +31,7 @@ classB = numpy.concatenate(
     (numpy.random.randn(points_B, 2) * variance_B + c_B_1,  # 10x2 vector of normal distribution around 1.5, 0.5,
      numpy.random.randn(points_B, 2) * variance_B + c_B_2,
      numpy.random.randn(points_B, 2) * variance_B + c_B_3))
-"""
+
 
 def generating_test_data():
     inputs = numpy.concatenate((classA, classB))
@@ -50,8 +50,8 @@ N = inputs.shape[0]
 
 def kernel_function(x, y):
     "Different kernel funcitons"
-    p = 10      # parameter polynomial kernel
-    sigma = 10   # parameter RBF kernel
+    p = 2      # parameter polynomial kernel
+    sigma = 1   # parameter RBF kernel
     if kernel == 1:
         return (numpy.dot(x, y) + 1) ** p   #polynomial
     elif kernel == 2:
