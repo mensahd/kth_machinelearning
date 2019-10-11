@@ -31,6 +31,9 @@ import random
 # NOTE: you do not need to handle the W argument for this part!
 # in: labels - N vector of class labels
 # out: prior - C x 1 vector of class priors
+from Lab_3.labfuns import testClassifier
+
+
 def computePrior(labels, W=None):
     Npts = labels.shape[0]
     if W is None:
@@ -42,9 +45,12 @@ def computePrior(labels, W=None):
 
     prior = np.zeros((Nclasses,1))
 
-    # TODO: compute the values of prior for each class!
+
     # ==========================
-    
+    for jdx, klass in enumerate(classes):
+        idx = np.where(labels == klass)[0]
+        xlc_weights = W[idx, :]
+        prior[jdx] = np.sum(xlc_weights)
     # ==========================
 
     return prior
@@ -63,12 +69,22 @@ def mlParams(X, labels, W=None):
     if W is None:
         W = np.ones((Npts,1))/float(Npts)
 
-    mu = np.zeros((Nclasses,Ndims))
-    sigma = np.zeros((Nclasses,Ndims,Ndims))
 
-    # TODO: fill in the code to compute mu and sigma!
+    mu = np.zeros((Nclasses,Ndims))
+    sigma = np.zeros((Nclasses, Ndims, Ndims))
+
     # ==========================
-    
+
+    for jdx, klasse in enumerate(classes):
+        idx = np.where(labels == klasse)[0]
+        xlc = X[idx,:]
+        xlc_weights = W[idx,:]
+        mu_curr = sum(xlc * xlc_weights) * (1./np.sum(xlc_weights))
+        mu[jdx] = mu_curr
+
+        sig = np.zeros((Nclasses, Nclasses))
+        sig = (1./np.sum(xlc_weights)) * sum(xlc_weights * np.square(xlc - mu_curr))
+        sigma[jdx] = np.diag(sig)
     # ==========================
 
     return mu, sigma
@@ -86,12 +102,15 @@ def classifyBayes(X, prior, mu, sigma):
 
     # TODO: fill in the code to compute the log posterior logProb!
     # ==========================
-    
+    for idx in range(Nclasses):
+        x_s = X - mu[idx]
+        inner_part = - 0.5 * np.diag(np.dot((x_s * 1./np.diag(sigma[idx])), np.transpose(x_s)))
+        logProb[idx] = (-0.5) * np.log(np.linalg.det(sigma[idx])) + inner_part + np.log(prior[idx])
     # ==========================
     
     # one possible way of finding max a-posteriori once
     # you have computed the log posterior
-    h = np.argmax(logProb,axis=0)
+    h = np.argmax(logProb, axis=0)
     return h
 
 
@@ -128,14 +147,11 @@ plotGaussian(X,labels,mu,sigma)
 
 
 #testClassifier(BayesClassifier(), dataset='iris', split=0.7)
-
+#plotBoundary(BayesClassifier(), dataset='iris',split=0.7)
 
 
 #testClassifier(BayesClassifier(), dataset='vowel', split=0.7)
-
-
-
-#plotBoundary(BayesClassifier(), dataset='iris',split=0.7)
+#plotBoundary(BayesClassifier(), dataset='vowel', split=0.7)
 
 
 # ## Boosting functions to implement
@@ -166,10 +182,16 @@ def trainBoost(base_classifier, X, labels, T=10):
         # do classification for each point
         vote = classifiers[-1].classify(X)
 
-        # TODO: Fill in the rest, construct the alphas etc.
         # ==========================
-        
-        # alphas.append(alpha) # you will need to append the new alpha
+        res = vote == labels
+
+        eCur = sum(wCur*(1-res))
+        alphaCur = 0.5 * (np.log(1-eCur)-np.log(eCur))
+
+        wNext = wCur * np.where(alphaCur == 1, np.exp(alphaCur), np.exp(alphaCur))
+        wNext = wNext / sum(wNext)
+        wCur = wNext
+        alphas.append(alphaCur) # you will need to append the new alpha
         # ==========================
         
     return classifiers, alphas
@@ -189,10 +211,14 @@ def classifyBoost(X, classifiers, alphas, Nclasses):
     else:
         votes = np.zeros((Npts,Nclasses))
 
-        # TODO: implement classificiation when we have trained several classifiers!
         # here we can do it by filling in the votes vector with weighted votes
         # ==========================
-        
+        for tstep, classifier in enumerate(classifiers):
+            res = classifier.classify(X)
+            votesCur = np.zeros((Npts, Nclasses))
+            for idx, r in enumerate(res):
+                votesCur[idx, r] = 1
+            votes = votes + alphas[tstep] * votesCur
         # ==========================
 
         # one way to compute yPred after accumulating the votes
@@ -225,15 +251,12 @@ class BoostClassifier(object):
 # Call the `testClassifier` and `plotBoundary` functions for this part.
 
 
-#testClassifier(BoostClassifier(BayesClassifier(), T=10), dataset='iris',split=0.7)
-
+testClassifier(BoostClassifier(BayesClassifier(), T=10), dataset='iris',split=0.7)
+plotBoundary(BoostClassifier(BayesClassifier()), dataset='iris',split=0.7)
 
 
 #testClassifier(BoostClassifier(BayesClassifier(), T=10), dataset='vowel',split=0.7)
-
-
-
-#plotBoundary(BoostClassifier(BayesClassifier()), dataset='iris',split=0.7)
+#plotBoundary(BoostClassifier(BayesClassifier()), dataset='vowel',split=0.7)
 
 
 # Now repeat the steps with a decision tree classifier.
