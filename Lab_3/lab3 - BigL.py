@@ -31,9 +31,6 @@ import random
 # NOTE: you do not need to handle the W argument for this part!
 # in: labels - N vector of class labels
 # out: prior - C x 1 vector of class priors
-from Lab_3.labfuns import testClassifier
-
-
 def computePrior(labels, W=None):
     Npts = labels.shape[0]
     if W is None:
@@ -45,13 +42,14 @@ def computePrior(labels, W=None):
 
     prior = np.zeros((Nclasses, 1))
 
-
+    # TODO: compute the values of prior for each class!
     # ==========================
-    for jdx, klass in enumerate(classes):
-        idx = np.where(labels == klass)[0]
-        xlc_weights = W[idx, :]
-        prior[jdx] = np.sum(xlc_weights)
-
+    for jdx,klasse in enumerate(classes):
+        index = np.where(labels == klasse)[0]   # returns a true or false vector if the index corresponds to the class
+        datapoints = X[index, :]
+        weights = W[index, :]
+        #prior[jdx] = datapoints.shape[0]/Npts
+        prior[jdx] = np.sum(weights)
     # ==========================
 
     return prior
@@ -70,22 +68,20 @@ def mlParams(X, labels, W=None):
     if W is None:
         W = np.ones((Npts,1))/float(Npts)
 
-
     mu = np.zeros((Nclasses,Ndims))     # mu = C x d matrix
     sigma = np.zeros((Nclasses,Ndims,Ndims))    # sigma = C x d x d matric
 
+    # TODO: fill in the code to compute mu and sigma!
     # ==========================
-    for jdx, klasse in enumerate(classes):
-        idx = np.where(labels == klasse)[0]
-        xlc = X[idx,:]
-        xlc_weights = W[idx,:]
-        mu_curr = sum(xlc * xlc_weights) * (1./np.sum(xlc_weights))
-        mu[jdx] = mu_curr
-
-        sig = np.zeros((Nclasses, Nclasses))
-        sig = (1./np.sum(xlc_weights)) * sum(xlc_weights * np.square(xlc - mu_curr))
-        sigma[jdx] = np.diag(sig)
-
+    for jdx,klasse in enumerate(classes):
+        index = np.where(labels == klasse)[0]   # returns a true or false vector if the index corresponds to the class
+        datapoints = X[index, :]                # extracts the datapoints of a given class
+        weights = W[index, :]
+        mu[jdx] = sum(datapoints*weights)/(np.sum(weights)) # calculation with boosting
+        #mu[jdx] = sum(datapoints)/(datapoints.shape[0])    # calculate the mean by likelihood
+        square = np.square(datapoints-mu[jdx])
+        sigma[jdx] = np.diag(sum(weights*square))/(np.sum(weights))  # calculation with boosting
+        #sigma[jdx] = np.diag(sum(np.square(datapoints-mu[jdx])))/(datapoints.shape[0])  # calculate sigma by likelihood
     # ==========================
 
     return mu, sigma
@@ -101,18 +97,17 @@ def classifyBayes(X, prior, mu, sigma):
     Nclasses,Ndims = np.shape(mu)
     logProb = np.zeros((Nclasses, Npts))
 
+    # TODO: fill in the code to compute the log posterior logProb!
     # ==========================
-
-    for idx in range(Nclasses):
-        x_s = X - mu[idx]
-        inner_part = - 0.5 * np.diag(np.dot((x_s * 1./np.diag(sigma[idx])), np.transpose(x_s)))
-        logProb[idx] = (-0.5) * np.log(np.linalg.det(sigma[idx])) + inner_part + np.log(prior[idx])
-
+    for klasse in range(Nclasses):
+        x = (X-mu[klasse])
+        dotproduct = np.diag(np.dot(x*1/np.diag(sigma[klasse]),np.transpose(x)))
+        logProb[klasse] =-1/2*np.log(np.linalg.det(sigma[klasse]))+np.log(prior[klasse])-1/2*dotproduct
     # ==========================
 
     # one possible way of finding max a-posteriori once
     # you have computed the log posterior
-    h = np.argmax(logProb, axis=0)
+    h = np.argmax(logProb,axis=0)
     return h
 
 
@@ -142,18 +137,22 @@ class BayesClassifier(object):
 
 X, labels = genBlobs(centers=5)
 mu, sigma = mlParams(X,labels)
-plotGaussian(X,labels,mu,sigma)
+#plotGaussian(X,labels,mu,sigma)
 
 
 # Call the `testClassifier` and `plotBoundary` functions for this part.
 
 
 #testClassifier(BayesClassifier(), dataset='iris', split=0.7)
-#plotBoundary(BayesClassifier(), dataset='iris',split=0.7)
+#plotBoundary(BayesClassifier(), dataset='iris', split=0.7)
 
 
 #testClassifier(BayesClassifier(), dataset='vowel', split=0.7)
 #plotBoundary(BayesClassifier(), dataset='vowel', split=0.7)
+
+
+
+#plotBoundary(BayesClassifier(), dataset='iris',split=0.7)
 
 
 # ## Boosting functions to implement
@@ -178,24 +177,30 @@ def trainBoost(base_classifier, X, labels, T=10):
     wCur = np.ones((Npts,1))/float(Npts)
 
     for i_iter in range(0, T):
+
+        # 1 Train a weak learner using distribution w
+
         # a new classifier can be trained like this, given the current weights
         classifiers.append(base_classifier.trainClassifier(X, labels, wCur))
 
         # do classification for each point
         vote = classifiers[-1].classify(X)
 
+        # TODO: Fill in the reset, construct the alphas etc.
         # ==========================
 
-        res = vote == labels
-        res = np.reshape(Npts,1)
-        eCur = sum(wCur*(1-res))
-        alphaCur = 0.5 * (np.log(1-eCur)-np.log(eCur))
+        # 2 Compute error
+        delta = (vote == labels)    # contains wrong and false classification
+        delta = delta.reshape(Npts, 1)  # bring delta in N x 1 matrix form
+        error = np.sum(wCur*(1-(delta)))
 
-        wNext = wCur * np.where(alphaCur == 1, np.exp(alphaCur), np.exp(alphaCur))
-        wNext = wNext / sum(wNext)
-        wCur = wNext
-        alphas.append(alphaCur) # you will need to append the new alpha
+        # 3 Choose alpha
+        alpha = 1/2*(np.log(1.-error)-np.log(error))
+        alphas.append(alpha) # you will need to append the new alpha
 
+        # 4 Uptdate weights
+        wCur = wCur*np.exp(alpha*(-1 * (delta == True) + 1 * (delta == False)))
+        wCur = wCur/sum(wCur)
         # ==========================
 
     return classifiers, alphas
@@ -215,15 +220,14 @@ def classifyBoost(X, classifiers, alphas, Nclasses):
     else:
         votes = np.zeros((Npts,Nclasses))
 
+        # TODO: implement classificiation when we have trained several classifiers!
         # here we can do it by filling in the votes vector with weighted votes
         # ==========================
-        for tstep, classifier in enumerate(classifiers):
-            res = classifier.classify(X)
-            votesCur = np.zeros((Npts, Nclasses))
-            for idx, r in enumerate(res):
-                votesCur[idx, r] = 1
-            votes = votes + alphas[tstep] * votesCur
-
+        for index in range(Ncomps):
+            h = classifiers[index].classify(X)
+            for point in range(Npts):
+                vote = h[point]
+                votes[point][vote] += alphas[index]
         # ==========================
 
         # one way to compute yPred after accumulating the votes
@@ -257,11 +261,14 @@ class BoostClassifier(object):
 
 
 testClassifier(BoostClassifier(BayesClassifier(), T=10), dataset='iris',split=0.7)
-plotBoundary(BoostClassifier(BayesClassifier()), dataset='iris',split=0.7)
+
 
 
 #testClassifier(BoostClassifier(BayesClassifier(), T=10), dataset='vowel',split=0.7)
-#plotBoundary(BoostClassifier(BayesClassifier()), dataset='vowel',split=0.7)
+
+
+
+plotBoundary(BoostClassifier(BayesClassifier()), dataset='iris',split=0.7)
 
 
 # Now repeat the steps with a decision tree classifier.
