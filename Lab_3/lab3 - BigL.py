@@ -46,7 +46,7 @@ def computePrior(labels, W=None):
     # ==========================
     for jdx,klasse in enumerate(classes):
         index = np.where(labels == klasse)[0]   # returns a true or false vector if the index corresponds to the class
-        datapoints = X[index, :]
+        #datapoints = X[index, :]
         weights = W[index, :]
         #prior[jdx] = datapoints.shape[0]/Npts
         prior[jdx] = np.sum(weights)
@@ -137,18 +137,18 @@ class BayesClassifier(object):
 
 X, labels = genBlobs(centers=5)
 mu, sigma = mlParams(X,labels)
-#plotGaussian(X,labels,mu,sigma)
+plotGaussian(X,labels,mu,sigma)
 
 
 # Call the `testClassifier` and `plotBoundary` functions for this part.
 
 
-#testClassifier(BayesClassifier(), dataset='iris', split=0.7)
-#plotBoundary(BayesClassifier(), dataset='iris', split=0.7)
+testClassifier(BayesClassifier(), dataset='iris', split=0.7)
+plotBoundary(BayesClassifier(), dataset='iris', split=0.7)
 
 
-#testClassifier(BayesClassifier(), dataset='vowel', split=0.7)
-#plotBoundary(BayesClassifier(), dataset='vowel', split=0.7)
+testClassifier(BayesClassifier(), dataset='vowel', split=0.7)
+plotBoundary(BayesClassifier(), dataset='vowel', split=0.7)
 
 
 
@@ -261,14 +261,12 @@ class BoostClassifier(object):
 
 
 testClassifier(BoostClassifier(BayesClassifier(), T=10), dataset='iris',split=0.7)
-
-
-
-#testClassifier(BoostClassifier(BayesClassifier(), T=10), dataset='vowel',split=0.7)
-
-
-
 plotBoundary(BoostClassifier(BayesClassifier()), dataset='iris',split=0.7)
+
+
+
+testClassifier(BoostClassifier(BayesClassifier(), T=10), dataset='vowel',split=0.7)
+plotBoundary(BoostClassifier(BayesClassifier()), dataset='vowel',split=0.7)
 
 
 # Now repeat the steps with a decision tree classifier.
