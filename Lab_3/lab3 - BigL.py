@@ -94,6 +94,7 @@ def mlParams(X, labels, W=None):
 def classifyBayes(X, prior, mu, sigma):
 
     Npts = X.shape[0]
+
     Nclasses,Ndims = np.shape(mu)
     logProb = np.zeros((Nclasses, Npts))
 
@@ -238,6 +239,7 @@ def classifyBoost(X, classifiers, alphas, Nclasses):
 
 
 # NOTE: no need to touch this
+
 class BoostClassifier(object):
     def __init__(self, base_classifier, T=10):
         self.base_classifier = base_classifier
